@@ -22,13 +22,13 @@ for(i in 2:length(name)){
 names(cs.v1)=name
 
 # d_v_website
-cusid <- cs.v1$CUS_ID
+CUS_ID <- cs.v1$CUS_ID
 n_v_web <- as.matrix(cs.v1 %>% subset(select=-c(CUS_ID)))
 get_dum <- function(x){
   unlist(lapply(x, function(i){ifelse(is.na(i)==T,0,1)}))
 }
 cs.v2 <- data.frame(t(apply(n_v_web, 1, get_dum)))
-cs.v2 <- cbind(cusid, cs.v2)
+cs.v2 <- cbind(CUS_ID, cs.v2)
 name=names(cs.v2)
 for(i in 2:length(name)){
   name[i] = paste('d_v_',i-1)
@@ -49,6 +49,8 @@ names(cs.v3)=name
 visit_vars <- cs.v2 %>%
   left_join(cs.v1) %>%
   left_join(cs.v3)
+
+write.csv(visit_vars,'DW_visit_vars.csv')
 
 ### 시간대별 distribution 파악
 #cus profile 불러오기
