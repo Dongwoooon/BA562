@@ -58,8 +58,12 @@ cs.v3<-cls%>%
   mutate(wk_time=ifelse(wday(ymd_h(TIME_ID))%in%2:6,ST_TIME,0),we_time=ifelse(wday(ymd_h(TIME_ID))%in%c(1,7),ST_TIME,0))%>% #주중/주말 구분 
   group_by(CUS_ID)%>%
   summarize_each(funs(sum),wk_time,we_time)%>% #주중/ 주말 소모시간 합산 
+  mutate(sum_time=wk_time+we_time)%>%
   mutate(wk_pat=ifelse(wk_time>=we_time*1.5,"주중형", 
-                      ifelse(we_time>=wk_time*1.5,"주말형","유형없음"))) #60%이상 사용시 패턴 부여 
+                      ifelse(we_time>=wk_time*1.5,"주말형","유형없음")))%>% #60%이상 사용시 패턴 부여
+  mutate(wk_ratio=wk_time/sum_time*100,
+         we_ratio=we_time/sum_time*100)%>%
+  select(-sum_time)
 
 
 
@@ -68,8 +72,12 @@ cs.v4<-cs.v2.0%>%
   mutate(wk_day=ifelse(wday(TIME_ID2)%in%2:6,1,0),we_day=ifelse(wday(TIME_ID2)%in%c(1,7),1,0))%>% 
   group_by(CUS_ID)%>%
   summarize_each(funs(sum),wk_day,we_day)%>%
+  mutate(sum_day=wk_day+we_day)%>%
   mutate(wk_pat2=ifelse(wk_day>=we_day*1.5,"주중형", 
-                       ifelse(we_day>=wk_day*1.5,"주말형","유형없음")))
+                       ifelse(we_day>=wk_day*1.5,"주말형","유형없음")))%>%
+  mutate(wk_ratio2=wk_day/sum_day*100,
+         we_ratio2=we_day/sum_day*100)%>%
+  select(-sum_day)
 
 
 
@@ -353,7 +361,197 @@ cs.v17<-cls%>%
 
 
 
+#dongyoun 변수만들기
+##number of page requests and percentage of total number of page requests during 월
+cs.d0<-cls%>%
+  mutate(jan_cnt=ifelse(month(ymd_h(TIME_ID))==1,SITE_CNT,0),
+         fab_cnt=ifelse(month(ymd_h(TIME_ID))==2,SITE_CNT,0),
+         mar_cnt=ifelse(month(ymd_h(TIME_ID))==3,SITE_CNT,0),
+         apr_cnt=ifelse(month(ymd_h(TIME_ID))==4,SITE_CNT,0),
+         may_cnt=ifelse(month(ymd_h(TIME_ID))==5,SITE_CNT,0),
+         jun_cnt=ifelse(month(ymd_h(TIME_ID))==6,SITE_CNT,0),
+         jul_cnt=ifelse(month(ymd_h(TIME_ID))==7,SITE_CNT,0),
+         aug_cnt=ifelse(month(ymd_h(TIME_ID))==8,SITE_CNT,0),
+         sep_cnt=ifelse(month(ymd_h(TIME_ID))==9,SITE_CNT,0),
+         oct_cnt=ifelse(month(ymd_h(TIME_ID))==10,SITE_CNT,0),
+         nov_cnt=ifelse(month(ymd_h(TIME_ID))==11,SITE_CNT,0),
+         dec_cnt=ifelse(month(ymd_h(TIME_ID))==12,SITE_CNT,0))%>% #월 구분 
+  group_by(CUS_ID)%>%
+  summarize_each(funs(sum),jan_cnt,fab_cnt,mar_cnt,apr_cnt,may_cnt,jun_cnt,jul_cnt,aug_cnt,sep_cnt,oct_cnt,nov_cnt,dec_cnt)%>%
+  mutate(sum_cnt=jan_cnt+fab_cnt+mar_cnt+apr_cnt+may_cnt+jun_cnt+jul_cnt+aug_cnt+sep_cnt+oct_cnt+nov_cnt+dec_cnt, #전체 카운트  
+         mmax_cnt=max(c(jan_cnt,fab_cnt,mar_cnt,apr_cnt,may_cnt,jun_cnt,jul_cnt,aug_cnt,sep_cnt,oct_cnt,nov_cnt,dec_cnt)))%>% #월중 최대 카운트  
+  #전체 시간 중 30% 이상 사용 및 최대 카운트일 경우 패턴 부여   
+  mutate(month_pat3=ifelse((jan_cnt>=0.3*sum_cnt)&(jan_cnt==mmax_cnt),"1월",
+                          ifelse((fab_cnt>=0.3*sum_cnt)&(fab_cnt==mmax_cnt),"2월",
+                                 ifelse((mar_cnt>=0.3*sum_cnt)&(mar_cnt==mmax_cnt),"3월",
+                                        ifelse((apr_cnt>=0.3*sum_cnt)&(apr_cnt==mmax_cnt),"4월",
+                                               ifelse((may_cnt>=0.3*sum_cnt)&(may_cnt==mmax_cnt),"5월",
+                                                      ifelse((jun_cnt>=0.3*sum_cnt)&(jun_cnt==mmax_cnt),"6월",
+                                                             ifelse((jul_cnt>=0.3*sum_cnt)&(jul_cnt==mmax_cnt),"7월",
+                                                                    ifelse((aug_cnt>=0.3*sum_cnt)&(aug_cnt==mmax_cnt),"8월",
+                                                                           ifelse((sep_cnt>=0.3*sum_cnt)&(sep_cnt==mmax_cnt),"9월",
+                                                                                  ifelse((oct_cnt>=0.3*sum_cnt)&(oct_cnt==mmax_cnt),"10월",
+                                                                                         ifelse((nov_cnt>=0.3*sum_cnt)&(nov_cnt==mmax_cnt),"11월",
+                                                                                                ifelse((dec_cnt>=0.3*sum_cnt)&(dec_cnt==mmax_cnt),"12월","유형없음")))))))))))))%>%
+  #월별 카운트 비율 계산 
+  mutate(jan_ratio3=jan_cnt/sum_cnt*100,
+         fab_ratio3=fab_cnt/sum_cnt*100,
+         mar_ratio3=mar_cnt/sum_cnt*100,
+         apr_ratio3=apr_cnt/sum_cnt*100,
+         may_ratio3=may_cnt/sum_cnt*100,
+         jun_ratio3=jun_cnt/sum_cnt*100,
+         jul_ratio3=jul_cnt/sum_cnt*100,
+         aug_ratio3=aug_cnt/sum_cnt*100,
+         sep_ratio3=sep_cnt/sum_cnt*100,
+         oct_ratio3=oct_cnt/sum_cnt*100,
+         nov_ratio3=nov_cnt/sum_cnt*100,
+         dec_ratio3=dec_cnt/sum_cnt*100)%>%
+  select(-sum_cnt)
 
+
+
+##number of page requests and percentage of total number of page requests during 요일
+cs.d1<-cls%>%
+  mutate(mon_cnt=ifelse(wday(ymd_h(TIME_ID))==2,SITE_CNT,0),
+         tues_cnt=ifelse(wday(ymd_h(TIME_ID))==3,SITE_CNT,0),
+         wednes_cnt=ifelse(wday(ymd_h(TIME_ID))==4,SITE_CNT,0),
+         thurs_cnt=ifelse(wday(ymd_h(TIME_ID))==5,SITE_CNT,0),
+         fri_cnt=ifelse(wday(ymd_h(TIME_ID))==6,SITE_CNT,0),
+         satur_cnt=ifelse(wday(ymd_h(TIME_ID))==7,SITE_CNT,0),
+         sun_cnt=ifelse(wday(ymd_h(TIME_ID))==1,SITE_CNT,0))%>% #일요일=1,...,토요일=7 요일 구분
+  group_by(CUS_ID)%>%
+  summarize_each(funs(sum),mon_cnt,tues_cnt,wednes_cnt,thurs_cnt,fri_cnt,satur_cnt,sun_cnt)%>% #요일 별 합산 카운트  
+  mutate(sum_cnt=sun_cnt+mon_cnt+tues_cnt+wednes_cnt+thurs_cnt+fri_cnt+satur_cnt, #전체 카운트 
+         dmax_cnt=max(c(sun_cnt,mon_cnt,tues_cnt,wednes_cnt,thurs_cnt,fri_cnt,satur_cnt)))%>% #전체 요일 중 최대 카운트  
+  #전체 시간 중 30% 이상 사용 및 최대 카운트일 경우 패턴 부여 
+  mutate(day_pat3=ifelse((sun_cnt>=0.3*sum_cnt)&(sun_cnt==dmax_cnt),"일요일",
+                        ifelse((mon_cnt>=0.3*sum_cnt)&(mon_cnt==dmax_cnt),"월요일",
+                               ifelse((tues_cnt>=0.3*sum_cnt)&(tues_cnt==dmax_cnt),"화요일",
+                                      ifelse((wednes_cnt>=0.3*sum_cnt)&(wednes_cnt==dmax_cnt),"수요일",
+                                             ifelse((thurs_cnt>=0.3*sum_cnt)&(thurs_cnt==dmax_cnt),"목요일",
+                                                    ifelse((fri_cnt>=0.3*sum_cnt)&(fri_cnt==dmax_cnt),"금요일",
+                                                           ifelse((satur_cnt>=0.3*sum_cnt)&(satur_cnt==dmax_cnt),"토요일","유형없음"))))))))%>%
+  #요일 별 카운트 비율 계산 
+  mutate(mon_ratio3=mon_cnt/sum_cnt*100,
+         tues_ratio3=tues_cnt/sum_cnt*100,
+         wednes_ratio3=wednes_cnt/sum_cnt*100,
+         thurs_ratio3=thurs_cnt/sum_cnt*100,
+         fri_ratio3=fri_cnt/sum_cnt*100,
+         satur_ratio3=satur_cnt/sum_cnt*100,
+         sun_ratio3=sun_cnt/sum_cnt*100)#%>%
+  #select(-sum_cnt)
+
+
+##number of page requests and percentage of total number of page requests during 주중/주말
+cs.d2<-cls%>%
+  mutate(wk_cnt=ifelse(wday(ymd_h(TIME_ID))%in%2:6,SITE_CNT,0),we_cnt=ifelse(wday(ymd_h(TIME_ID))%in%c(1,7),SITE_CNT,0))%>% #주중/주말 구분 
+  group_by(CUS_ID)%>%
+  summarize_each(funs(sum),wk_cnt,we_cnt)%>% #주중/ 주말 카운트 합산
+  mutate(sum_cnt=wk_cnt+we_cnt)%>% #전체 카운트
+  mutate(wk_pat3=ifelse(wk_cnt>=we_cnt*1.5,"주중형", 
+                       ifelse(we_cnt>=wk_cnt*1.5,"주말형","유형없음")))%>% #60%이상 사용시 패턴 부여
+  mutate(wk_ratio3=wk_cnt/sum_cnt*100,
+         we_ratio3=we_cnt/sum_cnt*100)%>%
+  select(-sum_cnt)
+
+##number of page requests and percentage of total number of page requests during 시간
+cs.d9<-cls%>%
+  mutate(cons_cnt0=ifelse(hour(ymd_h(TIME_ID))%in%0:7,SITE_CNT,0),
+         cons_cnt8=ifelse(hour(ymd_h(TIME_ID))%in%8:11,SITE_CNT,0),
+         cons_cnt12=ifelse(hour(ymd_h(TIME_ID))%in%12:13,SITE_CNT,0),
+         cons_cnt14=ifelse(hour(ymd_h(TIME_ID))%in%14:16,SITE_CNT,0),
+         cons_cnt17=ifelse(hour(ymd_h(TIME_ID))%in%17:19,SITE_CNT,0),
+         cons_cnt20=ifelse(hour(ymd_h(TIME_ID))%in%20:23,SITE_CNT,0))%>% #위의 기준으로 시간대 구분 
+  group_by(CUS_ID)%>%
+  summarize_each(funs(sum),cons_cnt0,cons_cnt8,cons_cnt12,cons_cnt14,cons_cnt17,cons_cnt20)%>%
+  mutate(sum_cons_cnt=cons_cnt0+cons_cnt8+cons_cnt12+cons_cnt14+cons_cnt17+cons_cnt20, #전체 소모시간 
+         max_cons_cnt=max(c(cons_cnt0,cons_cnt8,cons_cnt12,cons_cnt14,cons_cnt17,cons_cnt20)))%>% #시간대 중 최대 소모시간 
+  #전체 시간 중 30% 이상 사용 및 최대 소모시간일 경우 패턴 부여 
+  mutate(time_pat3=ifelse((cons_cnt0>=0.3*sum_cons_cnt)&(cons_cnt0==max_cons_cnt),"새벽형",
+                          ifelse((cons_cnt8>=0.3*sum_cons_cnt)&(cons_cnt8==max_cons_cnt),"아침형",
+                                 ifelse((cons_cnt12>=0.3*sum_cons_cnt)&(cons_cnt12==max_cons_cnt),"점심형",
+                                        ifelse((cons_cnt14>=0.3*sum_cons_cnt)&(cons_cnt14==max_cons_cnt),"오후형",
+                                               ifelse((cons_cnt17>=0.3*sum_cons_cnt)&(cons_cnt17==max_cons_cnt),"저녁형",
+                                                      ifelse((cons_cnt20>=0.3*sum_cons_cnt)&(cons_cnt20==max_cons_cnt),"밤형","유형없음")))))))%>%
+  #시간대 별 소모시간 비율 
+  mutate(cons_cnt0_ratio=cons_cnt0/sum_cons_cnt*100,
+         cons_cnt8_ratio=cons_cnt8/sum_cons_cnt*100,
+         cons_cnt12_ratio=cons_cnt12/sum_cons_cnt*100,
+         cons_cnt14_ratio=cons_cnt14/sum_cons_cnt*100,
+         cons_cnt17_ratio=cons_cnt17/sum_cons_cnt*100,
+         cons_cnt20_ratio=cons_cnt20/sum_cons_cnt*100)%>%
+  select(-sum_cons_cnt)
+
+
+##min,max,mean,median,standard deviation of time per website visit
+cs.d3<-cls%>%
+  group_by(CUS_ID)%>%
+  summarize(v_t_min=min(ST_TIME),v_t_max=max(ST_TIME),v_t_mean=mean(ST_TIME),v_t_median=median(ST_TIME),v_t_sd=sd(ST_TIME))
+
+##min,max,mean,median,standard deviation of number of page requests per website visit
+cs.d4<-cls%>%
+  group_by(CUS_ID)%>%
+  summarize(v_pr_min=min(SITE_CNT),v_pr_max=max(SITE_CNT),v_pr_mean=mean(SITE_CNT),v_pr_median=median(SITE_CNT),v_pr_sd=sd(SITE_CNT))
+
+##coefficient of variation for website category
+cs.d5<-cls%>%
+  group_by(CUS_ID,BACT_NM)%>%
+  summarize(ST_TIME=sum(ST_TIME),SITE_CNT=sum(SITE_CNT),visit=n())%>%
+  group_by(CUS_ID)%>%
+  summarize(cat_coef_time=sd(ST_TIME)/mean(ST_TIME),cat_coef_visit=sd(visit)/mean(visit),cat_coef_cnt=sd(SITE_CNT)/mean(SITE_CNT))
+
+##coefficient of variation for time
+cs.d6.1<-cs.v9%>%
+  group_by(CUS_ID)%>%
+  summarize(time_coef_time=sd(c(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20))/
+              mean(c(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20)))
+cs.d6.2<-cs.v10%>%
+  group_by(CUS_ID)%>%
+  summarize(time_coef_visits=sd(c(cons_num0,cons_num8,cons_num12,cons_num14,cons_num17,cons_num20))/
+              mean(c(cons_num0,cons_num8,cons_num12,cons_num14,cons_num17,cons_num20)))
+cs.d6.3<-cs.d9%>%
+  group_by(CUS_ID)%>%
+  summarize(time_coef_cnt=sd(c(cons_cnt0,cons_cnt8,cons_cnt12,cons_cnt14,cons_cnt17,cons_cnt20))/
+              mean(c(cons_cnt0,cons_cnt8,cons_cnt12,cons_cnt14,cons_cnt17,cons_cnt20)))
+cs.d6<-cs.d6.1%>%
+  left_join(cs.d6.2)%>%
+  left_join(cs.d6.3)
+
+
+##coefficient of variation for day
+cs.d7.1<-cs.v5%>%
+  group_by(CUS_ID)%>%
+  summarize(day_coef_time=sd(c(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time))/
+           mean(c(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time)))
+cs.d7.2<-cs.v6%>%
+  group_by(CUS_ID)%>%
+  summarize(day_coef_visit=sd(c(sun_day,mon_day,tues_day,wednes_day,thurs_day,fri_day,satur_day))/
+           mean(c(sun_day,mon_day,tues_day,wednes_day,thurs_day,fri_day,satur_day)))
+cs.d7.3<-cs.d1%>%
+  group_by(CUS_ID)%>%
+  summarize(day_coef_cnt=sd(c(sun_cnt,mon_cnt,tues_cnt,wednes_cnt,thurs_cnt,fri_cnt,satur_cnt))/
+           mean(c(sun_cnt,mon_cnt,tues_cnt,wednes_cnt,thurs_cnt,fri_cnt,satur_cnt)))
+cs.d7<-cs.d7.1%>%
+  left_join(cs.d7.2)%>%
+  left_join(cs.d7.3)
+
+
+##coefficient of variation for month
+cs.d8.1<-cs.v7%>%
+  group_by(CUS_ID)%>%
+  summarize(mon_coef_time=sd(c(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time))/
+           mean(c(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time)))
+cs.d8.2<-cs.v8%>%
+  group_by(CUS_ID)%>%
+  summarize(mon_coef_visit=sd(c(jan_day,fab_day,mar_day,apr_day,may_day,jun_day,jul_day,aug_day,sep_day,oct_day,nov_day,dec_day))/
+          mean(c(jan_day,fab_day,mar_day,apr_day,may_day,jun_day,jul_day,aug_day,sep_day,oct_day,nov_day,dec_day)))
+cs.d8.3<-cs.d0%>%
+  group_by(CUS_ID)%>%
+  summarize(mon_coef_cnt=sd(c(jan_cnt,fab_cnt,mar_cnt,apr_cnt,may_cnt,jun_cnt,jul_cnt,aug_cnt,sep_cnt,oct_cnt,nov_cnt,dec_cnt))/
+           mean(c(jan_cnt,fab_cnt,mar_cnt,apr_cnt,may_cnt,jun_cnt,jul_cnt,aug_cnt,sep_cnt,oct_cnt,nov_cnt,dec_cnt)))
+cs.d8<-cs.d8.1%>%
+  left_join(cs.d8.2)%>%
+  left_join(cs.d8.3)
 
 
 
