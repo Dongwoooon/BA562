@@ -35,35 +35,43 @@ sk<-read.delim("train_searchkeywords.tab",stringsAsFactors = F)
 ##총/평균 소모시간 및 카운트 수, 카운트 당 소모시간
 cs.v1<-cls%>%
   group_by(CUS_ID)%>%
-  summarize(sum_time=sum(ST_TIME),mean_time=mean(ST_TIME),
-            sum_cnt=sum(SITE_CNT),mean_cnt=mean(SITE_CNT),
-            mean_time_cnt=sum(ST_TIME)/sum(SITE_CNT))
+  summarize(sum_time=sum(ST_TIME),mean_time=mean(ST_TIME), #총/평균 소모시간
+            sum_cnt=sum(SITE_CNT),mean_cnt=mean(SITE_CNT), #총/평균 카운트 수
+            mean_time_cnt=sum(ST_TIME)/sum(SITE_CNT)) #카운트 당 소모시간
+
+
 
 ##총 방문일수##as.Date 삭제해보기
 cs.v2.0<-cls%>%
-  mutate(TIME_ID2=ymd(as.Date(ymd_h(TIME_ID))))%>%
-  group_by(CUS_ID,TIME_ID2)%>%
+  mutate(TIME_ID2=ymd(as.Date(ymd_h(TIME_ID))))%>% #시간 데이터 날리기 
+  group_by(CUS_ID,TIME_ID2)%>% #날짜별 구분 
   summarize(n=n())
 
 cs.v2<-cs.v2.0%>%
   group_by(CUS_ID)%>%
-  summarize(net_day=n())
+  summarize(net_day=n()) #총 방문일수 
 
-##(time base) 주중/주말형
+
+
+##(time base: 소모시간 기준으로 구분) 주중/주말형
 cs.v3<-cls%>%
-  mutate(wk_time=ifelse(wday(ymd_h(TIME_ID))%in%2:6,ST_TIME,0),we_time=ifelse(wday(ymd_h(TIME_ID))%in%c(1,7),ST_TIME,0))%>% 
+  mutate(wk_time=ifelse(wday(ymd_h(TIME_ID))%in%2:6,ST_TIME,0),we_time=ifelse(wday(ymd_h(TIME_ID))%in%c(1,7),ST_TIME,0))%>% #주중/주말 구분 
   group_by(CUS_ID)%>%
-  summarize_each(funs(sum),wk_time,we_time)%>%
+  summarize_each(funs(sum),wk_time,we_time)%>% #주중/ 주말 소모시간 합산 
   mutate(wk_pat=ifelse(wk_time>=we_time*1.5,"주중형", 
-                      ifelse(we_time>=wk_time*1.5,"주말형","유형없음")))
+                      ifelse(we_time>=wk_time*1.5,"주말형","유형없음"))) #60%이상 사용시 패턴 부여 
 
-##(day base) 주중/주말형
+
+
+##(day base: 소모시간을 무시하고 방문한 날에 1값 부여) 주중/주말형
 cs.v4<-cs.v2.0%>%
   mutate(wk_day=ifelse(wday(TIME_ID2)%in%2:6,1,0),we_day=ifelse(wday(TIME_ID2)%in%c(1,7),1,0))%>% 
   group_by(CUS_ID)%>%
   summarize_each(funs(sum),wk_day,we_day)%>%
   mutate(wk_pat2=ifelse(wk_day>=we_day*1.5,"주중형", 
                        ifelse(we_day>=wk_day*1.5,"주말형","유형없음")))
+
+
 
 ##(time base) 선호 요일 및 요일별 비율 (and 요일별당 최대시간)
 cs.v5<-cls%>%
@@ -73,11 +81,12 @@ cs.v5<-cls%>%
          thurs_time=ifelse(wday(ymd_h(TIME_ID))==5,ST_TIME,0),
          fri_time=ifelse(wday(ymd_h(TIME_ID))==6,ST_TIME,0),
          satur_time=ifelse(wday(ymd_h(TIME_ID))==7,ST_TIME,0),
-         sun_time=ifelse(wday(ymd_h(TIME_ID))==1,ST_TIME,0))%>%
+         sun_time=ifelse(wday(ymd_h(TIME_ID))==1,ST_TIME,0))%>% #일요일=1,...,토요일=7 요일 구분
   group_by(CUS_ID)%>%
-  summarize_each(funs(sum),mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time,sun_time)%>%
-  mutate(sum_time=sum(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time),
-         dmax_time=max(c(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time)))%>%
+  summarize_each(funs(sum),mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time,sun_time)%>% #요일 별 합산 소모시간 
+  mutate(sum_time=sum(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time), #전체 소모시간 
+         dmax_time=max(c(sun_time,mon_time,tues_time,wednes_time,thurs_time,fri_time,satur_time)))%>% #전체 요일 중 최대 소모시간 
+  #전체 시간 중 30% 이상 사용 및 최대 소모시간일 경우 패턴 부여 
   mutate(day_pat=ifelse((sun_time>=0.3*sum_time)&(sun_time==dmax_time),"일요일",
                         ifelse((mon_time>=0.3*sum_time)&(mon_time==dmax_time),"월요일",
                                ifelse((tues_time>=0.3*sum_time)&(tues_time==dmax_time),"화요일",
@@ -85,6 +94,7 @@ cs.v5<-cls%>%
                                              ifelse((thurs_time>=0.3*sum_time)&(thurs_time==dmax_time),"목요일",
                                                     ifelse((fri_time>=0.3*sum_time)&(fri_time==dmax_time),"금요일",
                                                            ifelse((satur_time>=0.3*sum_time)&(satur_time==dmax_time),"토요일","유형없음"))))))))%>%
+  #요일 별 소모시간 비율 계산 
   mutate(mon_ratio=mon_time/sum_time*100,
          tues_ratio=tues_time/sum_time*100,
          wednes_ratio=wednes_time/sum_time*100,
@@ -93,6 +103,8 @@ cs.v5<-cls%>%
          satur_ratio=satur_time/sum_time*100,
          sun_ratio=sun_time/sum_time*100)%>%
   select(-sum_time)
+
+
 
 ##(day base) 선호 요일 및 요일별 비율 (and 요일별당 최대횟수)
 cs.v6<-cs.v2.0%>%
@@ -123,6 +135,8 @@ cs.v6<-cs.v2.0%>%
          sun_ratio2=sun_day/sum_day*100)%>%
   select(-sum_day)
 
+
+
 ##(time base) 선호 월 및 월별 비율 (and 월별당 최대시간)
 cs.v7<-cls%>%
   mutate(jan_time=ifelse(month(ymd_h(TIME_ID))==1,ST_TIME,0),
@@ -136,11 +150,12 @@ cs.v7<-cls%>%
          sep_time=ifelse(month(ymd_h(TIME_ID))==9,ST_TIME,0),
          oct_time=ifelse(month(ymd_h(TIME_ID))==10,ST_TIME,0),
          nov_time=ifelse(month(ymd_h(TIME_ID))==11,ST_TIME,0),
-         dec_time=ifelse(month(ymd_h(TIME_ID))==12,ST_TIME,0))%>%
+         dec_time=ifelse(month(ymd_h(TIME_ID))==12,ST_TIME,0))%>% #월 구분 
   group_by(CUS_ID)%>%
   summarize_each(funs(sum),jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time)%>%
-  mutate(sum_time=sum(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time),
-         mmax_time=max(c(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time)))%>%
+  mutate(sum_time=sum(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time), #전체 소모시간 
+         mmax_time=max(c(jan_time,fab_time,mar_time,apr_time,may_time,jun_time,jul_time,aug_time,sep_time,oct_time,nov_time,dec_time)))%>% #월중 최대 소모시간 
+  #전체 시간 중 30% 이상 사용 및 최대 소모시간일 경우 패턴 부여   
   mutate(month_pat=ifelse((jan_time>=0.3*sum_time)&(jan_time==mmax_time),"1월",
                           ifelse((fab_time>=0.3*sum_time)&(fab_time==mmax_time),"2월",
                                  ifelse((mar_time>=0.3*sum_time)&(mar_time==mmax_time),"3월",
@@ -153,6 +168,7 @@ cs.v7<-cls%>%
                                                                                   ifelse((oct_time>=0.3*sum_time)&(oct_time==mmax_time),"10월",
                                                                                          ifelse((nov_time>=0.3*sum_time)&(nov_time==mmax_time),"11월",
                                                                                                 ifelse((dec_time>=0.3*sum_time)&(dec_time==mmax_time),"12월","유형없음")))))))))))))%>%
+  #월별 소모시간 비율 계산 
   mutate(jan_ratio=jan_time/sum_time*100,
          fab_ratio=fab_time/sum_time*100,
          mar_ratio=mar_time/sum_time*100,
@@ -166,6 +182,8 @@ cs.v7<-cls%>%
          nov_ratio=nov_time/sum_time*100,
          dec_ratio=dec_time/sum_time*100)%>%
   select(-sum_time)
+
+
 
 ##(day base) 선호 월 및 월별 비율 (and 월별당 최대시간)
 cs.v8<-cs.v2.0%>%
@@ -211,6 +229,8 @@ cs.v8<-cs.v2.0%>%
          dec_ratio2=dec_day/sum_day*100)%>%
   select(-sum_day)
 
+
+
 ##선호 시간대(00~07새벽형,08~11아침형,12~13점심형,14~16오후형,17~19저녁형,20~23밤형): 24시간 중 가장 오래 머무른 시간
 cs.v9<-cls%>%
   mutate(cons_time0=ifelse(hour(ymd_h(TIME_ID))%in%0:7,ST_TIME,0),
@@ -218,17 +238,19 @@ cs.v9<-cls%>%
          cons_time12=ifelse(hour(ymd_h(TIME_ID))%in%12:13,ST_TIME,0),
          cons_time14=ifelse(hour(ymd_h(TIME_ID))%in%14:16,ST_TIME,0),
          cons_time17=ifelse(hour(ymd_h(TIME_ID))%in%17:19,ST_TIME,0),
-         cons_time20=ifelse(hour(ymd_h(TIME_ID))%in%20:23,ST_TIME,0))%>%
+         cons_time20=ifelse(hour(ymd_h(TIME_ID))%in%20:23,ST_TIME,0))%>% #위의 기준으로 시간대 구분 
   group_by(CUS_ID)%>%
   summarize_each(funs(sum),cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20)%>%
-  mutate(sum_cons_time=sum(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20),
-         max_cons_time=max(c(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20)))%>%
+  mutate(sum_cons_time=sum(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20), #전체 소모시간 
+         max_cons_time=max(c(cons_time0,cons_time8,cons_time12,cons_time14,cons_time17,cons_time20)))%>% #시간대 중 최대 소모시간 
+  #전체 시간 중 30% 이상 사용 및 최대 소모시간일 경우 패턴 부여 
   mutate(time_pat=ifelse((cons_time0>=0.3*sum_cons_time)&(cons_time0==max_cons_time),"새벽형",
                          ifelse((cons_time8>=0.3*sum_cons_time)&(cons_time8==max_cons_time),"아침형",
                                 ifelse((cons_time12>=0.3*sum_cons_time)&(cons_time12==max_cons_time),"점심형",
                                        ifelse((cons_time14>=0.3*sum_cons_time)&(cons_time14==max_cons_time),"오후형",
                                               ifelse((cons_time17>=0.3*sum_cons_time)&(cons_time17==max_cons_time),"저녁형",
                                                      ifelse((cons_time20>=0.3*sum_cons_time)&(cons_time20==max_cons_time),"밤형","유형없음")))))))%>%
+  #시간대 별 소모시간 비율 
   mutate(cons_time0_ratio=cons_time0/sum_cons_time*100,
          cons_time8_ratio=cons_time8/sum_cons_time*100,
          cons_time12_ratio=cons_time12/sum_cons_time*100,
@@ -236,6 +258,8 @@ cs.v9<-cls%>%
          cons_time17_ratio=cons_time17/sum_cons_time*100,
          cons_time20_ratio=cons_time20/sum_cons_time*100)%>%
   select(-sum_cons_time)
+
+
 
 ##선호 시간대(00~07새벽형,08~11아침형,12~13점심형,14~16오후형,17~19저녁형,20~23밤형): 24시간 중 가장 오래 횟수가 많은 시간
 cs.v10<-cls%>%
@@ -263,53 +287,61 @@ cs.v10<-cls%>%
          cons_num20_ratio=cons_num20/sum_cons_num*100)%>%
   select(-sum_cons_num)
 
+
+
 ##접속 간격
 cs.v11<-cs.v2.0%>%
   group_by(CUS_ID)%>%
+  #첫 사용일과 마지막 사용일 평균 간격& 한번 사용한 경우 간격은 없으므로 NA(임시) 부여 
   summarize(first_date=min(TIME_ID2),last_date=max(TIME_ID2),interval=ifelse(n()==1,NA,as.numeric((max(TIME_ID2)-min(TIME_ID2))/(n()-1))))
 
 ##클래스 다양성
 cs.v12<-cls%>%
   distinct(CUS_ID,BACT_NM)%>%
   group_by(CUS_ID)%>%
-  summarize(diversity=n())
+  summarize(diversity=n()) #사용한 클래스 개수 
 
 ##클래스 별 횟수 및 비율
 cs.v13.0<-cls%>%
   group_by(CUS_ID,BACT_NM)%>%
-  summarize(class_num=sum(SITE_CNT))
+  summarize(class_num=sum(SITE_CNT)) #클래스 별 카운트 합산 
 
 cs.v13<-cs.v13.0%>%
-  cast(CUS_ID~BACT_NM,value="class_num")
-colnames(cs.v13)<-c("CUS_ID",paste("횟수",colnames(cs.v13[-1]),sep="_"))
+  cast(CUS_ID~BACT_NM,value="class_num") #열데이터를 행 데이터로 변환 
+colnames(cs.v13)<-c("CUS_ID",paste("횟수",colnames(cs.v13[-1]),sep="_")) #열 이름 변경 
 
 cs.v14<-cs.v13.0%>%
   group_by(CUS_ID)%>%
-  mutate(class_ratio=class_num/sum(class_num)*100)%>%
+  mutate(class_ratio=class_num/sum(class_num)*100)%>% #클래스 별 카운트 비율 계산 
   select(CUS_ID,BACT_NM,class_ratio)%>%
-  cast(CUS_ID~BACT_NM,value="class_ratio")
-colnames(cs.v14)<-c("CUS_ID",paste("횟수비율",colnames(cs.v14[-1]),sep="_"))
+  cast(CUS_ID~BACT_NM,value="class_ratio") #열데이터를 행 데이터로 변환 
+colnames(cs.v14)<-c("CUS_ID",paste("횟수비율",colnames(cs.v14[-1]),sep="_")) #열 이름 변경 
+
+
 
 ##클래스 별 소모 시간 및 비율
 cs.v15.0<-cls%>%
   group_by(CUS_ID,BACT_NM)%>%
-  summarize(class_time=sum(ST_TIME))
+  summarize(class_time=sum(ST_TIME)) #클래스 별 소모시간 합산 
 
 cs.v15<-cs.v15.0%>%
-  cast(CUS_ID~BACT_NM,value="class_time")
-colnames(cs.v15)<-c("CUS_ID",paste("소모시간",colnames(cs.v15[-1]),sep="_"))
+  cast(CUS_ID~BACT_NM,value="class_time") #열데이터를 행 데이터로 변환
+colnames(cs.v15)<-c("CUS_ID",paste("소모시간",colnames(cs.v15[-1]),sep="_")) #열 이름 변경 
 
 cs.v16<-cs.v15.0%>%
   group_by(CUS_ID)%>%
-  mutate(class_ratio2=class_time/sum(class_time)*100)%>%
+  mutate(class_ratio2=class_time/sum(class_time)*100)%>% #클래스 별 소모시간 비율 계산 
   select(CUS_ID,BACT_NM,class_ratio2)%>%
-  cast(CUS_ID~BACT_NM,value="class_ratio2")
-colnames(cs.v16)<-c("CUS_ID",paste("시간비율",colnames(cs.v16[-1]),sep="_"))
+  cast(CUS_ID~BACT_NM,value="class_ratio2") #열데이터를 행 데이터로 변환
+colnames(cs.v16)<-c("CUS_ID",paste("시간비율",colnames(cs.v16[-1]),sep="_")) #열 이름 변경
+
+
 
 ##클래스 별 평균 접속 시간 대(00~07새벽형,08~11아침형,12~13점심형,14~16오후형,17~19저녁형,20~23밤형) (ex.점심시간에 게임 접속)
 cs.v17<-cls%>%
-  mutate(hour=hour(ymd_h(TIME_ID)))%>%
+  mutate(hour=hour(ymd_h(TIME_ID)))%>% #시간 데이터만 추출 
   group_by(CUS_ID,BACT_NM)%>%
+  #클래스 별 데이터가 5개 이상인 경우 평균 접속 시간을 계산 후 시간대 부여 
   summarize(mean_conn_hour=ifelse(n()>=5,ifelse(as.integer(mean(hour))%in%0:7,"새벽형",
                                                 ifelse(as.integer(mean(hour))%in%8:11,"아침형",
                                                        ifelse(as.integer(mean(hour))%in%12:13,"점심형",
@@ -317,6 +349,10 @@ cs.v17<-cls%>%
                                                                      ifelse(as.integer(mean(hour))%in%17:19,"저녁형",
                                                                             ifelse(as.integer(mean(hour))%in%20:23,"밤형","Error")))))),"유형없음"))%>%
   select(CUS_ID,mean_conn_hour)
+
+
+
+
 
 
 
