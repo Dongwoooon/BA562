@@ -604,8 +604,6 @@ cs<-cs%>%
   left_join(cs.v14)%>%
   left_join(cs.v15)%>%
   left_join(cs.v16)%>%
-  left_join(cs.v17)%>%
-  left_join(cs.v18)%>%
   left_join(cs.d3)%>%
   left_join(cs.d4)%>%
   left_join(cs.d5)%>%
@@ -613,7 +611,7 @@ cs<-cs%>%
   left_join(cs.d7)%>%
   left_join(cs.d8)
 
-write.csv(cs,"dw_cs_others.csv",row.names=FALSE)
+write.csv(cs,"DY_cs_others.csv",row.names=FALSE)
 
 #변수 생성 with Search keyword
 ##검색량
