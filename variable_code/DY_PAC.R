@@ -444,7 +444,7 @@ cs.d9<-cls%>%
 cs.v11<-cs.v2.0%>%
   group_by(CUS_ID)%>%
   #첫 사용일과 마지막 사용일 평균 간격& 한번 사용한 경우 간격은 없으므로 NA(임시) 부여 
-  summarize(first_date=min(TIME_ID2),last_date=max(TIME_ID2),interval=ifelse(n()==1,NA,as.numeric((max(TIME_ID2)-min(TIME_ID2))/(n()-1))))
+  summarize(interval=ifelse(n()==1,NA,as.numeric((max(TIME_ID2)-min(TIME_ID2))/(n()-1))))
 
 ##클래스 다양성
 cs.v12<-cls%>%
@@ -488,20 +488,20 @@ colnames(cs.v16)<-c("CUS_ID",paste("시간비율",colnames(cs.v16[-1]),sep="_"))
 
 
 ##클래스별 visit 및 비율
-cs.v17.0<-cls%>%
-  group_by(CUS_ID,BACT_NM)%>%
-  summarize(class_visit=n()) #클래스 별 visit 합산 
-
-cs.v17<-cs.v17.0%>%
-  cast(CUS_ID~BACT_NM,value="class_visit") #열데이터를 행 데이터로 변환
-colnames(cs.v17)<-c("CUS_ID",paste("visit",colnames(cs.v17[-1]),sep="_")) #열 이름 변경 
-
-cs.v18<-cs.v17.0%>%
-  group_by(CUS_ID)%>%
-  mutate(class_ratio3=class_visit/sum(class_visit)*100)%>% #클래스 별 visit 비율 계산 
-  select(CUS_ID,BACT_NM,class_ratio3)%>%
-  cast(CUS_ID~BACT_NM,value="class_ratio3") #열데이터를 행 데이터로 변환
-colnames(cs.v18)<-c("CUS_ID",paste("visit비율",colnames(cs.v18[-1]),sep="_")) #열 이름 변경
+#cs.v17.0<-cls%>%
+#  group_by(CUS_ID,BACT_NM)%>%
+#  summarize(class_visit=n()) #클래스 별 visit 합산 
+#
+#cs.v17<-cs.v17.0%>%
+#  cast(CUS_ID~BACT_NM,value="class_visit") #열데이터를 행 데이터로 변환
+#colnames(cs.v17)<-c("CUS_ID",paste("visit",colnames(cs.v17[-1]),sep="_")) #열 이름 변경 
+#
+#cs.v18<-cs.v17.0%>%
+#  group_by(CUS_ID)%>%
+#  mutate(class_ratio3=class_visit/sum(class_visit)*100)%>% #클래스 별 visit 비율 계산 
+#  select(CUS_ID,BACT_NM,class_ratio3)%>%
+#  cast(CUS_ID~BACT_NM,value="class_ratio3") #열데이터를 행 데이터로 변환
+#colnames(cs.v18)<-c("CUS_ID",paste("visit비율",colnames(cs.v18[-1]),sep="_")) #열 이름 변경
 
 
 #dongyoun 변수만들기
@@ -613,7 +613,7 @@ cs<-cs%>%
   left_join(cs.d7)%>%
   left_join(cs.d8)
 
-write.csv(cs,"cs_pac.csv",row.names=FALSE)
+write.csv(cs,"dw_cs_others.csv",row.names=FALSE)
 
 #변수 생성 with Search keyword
 ##검색량

@@ -37,7 +37,7 @@ names(cs.v2)=name
 
 # p_v_website
 cs.v3 <- cs.v1.0 %>% group_by(CUS_ID) %>%
-  mutate(p_v=round(freq/sum(freq),3)) %>% select(CUS_ID,BACT_NM,p_v) %>%
+  mutate(p_v=round(freq/sum(freq)*100,3)) %>% select(CUS_ID,BACT_NM,p_v) %>%
   cast(CUS_ID~BACT_NM,value="p_v")
 
 name=names(cs.v3)
@@ -50,7 +50,7 @@ visit_vars <- cs.v2 %>%
   left_join(cs.v1) %>%
   left_join(cs.v3)
 
-write.csv(visit_vars,'DW_visit_vars.csv')
+write.csv(visit_vars,'DW_visit_vars.csv',row.names=FALSE)
 
 ### 시간대별 distribution 파악
 #cus profile 불러오기
