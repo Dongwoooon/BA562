@@ -2,10 +2,10 @@ library(KoNLP)
 useNIADic()
 
 setwd('J:/data/BA562/final/2_Data')
-kwd<-read.delim("train_searchkeywords.tab",stringsAsFactors = F)
+kwd<-read.delim("test_searchkeywords.tab",stringsAsFactors = F)
 
 #sample
-ksam<-kwd[sample(nrow(kwd),200),]
+ksam<-kwd[sample(nrow(kwd),20000),]
 
 trimming <- function(x){
   if(grepl('acq',x)==T){
@@ -28,4 +28,4 @@ write.csv(ksam,'keywordsample.csv',row.names = F)
 #진짜
 kwd$QRY_clean <- mapply(trimming,kwd$QRY_STR)
 kwd$QRY_clean <- gsub('\\+', ' ', kwd$QRY_clean)
-write.csv(kwd,'train_keyword_cleaned.csv',row.names = F)
+write.csv(kwd,'test_keyword_cleaned.csv',row.names = F)
