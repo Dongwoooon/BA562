@@ -98,7 +98,7 @@ sum(diag(ctab)) / nrow(cs.dt) #accuracy 추출.약 70.6%
 nrow(cs.dt[GENDER=="남자",]) / nrow(cs.dt) #2500명중 실제 남자일 확률 0.6344
 
 
-##############################GROUP###############################################
+#(사용X)#############################GROUP###############################################
 ###### Make sites sentences
 f <- function(x, t) {
   grp <- md.dt[CUS_ID==x, GROUP][1] #x번의 GROUP 저장
@@ -160,5 +160,5 @@ h <- function(x, t) {
 }
 ctab <- table(sapply(cs.dt$CUS_ID, h, 5), cs.dt$GROUP) #confusion matrix
 ctab
-sum(diag(ctab)) / nrow(cs.dt) #accuracy 추출.약 70.6%
-nrow(cs.dt[GROUP=="M30",]) / nrow(cs.dt) #2500명중 실제 M30일 확률 0.6344
+sum(diag(ctab)) / nrow(cs.dt) #accuracy 추출.
+nrow(cs.dt[GROUP=="M30",]) / nrow(cs.dt) #2500명중 실제 M30일 확률
