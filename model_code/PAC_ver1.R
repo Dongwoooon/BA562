@@ -33,6 +33,26 @@ cs_all <- cs.v1 %>%
   left_join(cs.v3) %>%
   select(-RESIDENCE)
 
+cs_all[is.na(cs_all[,"wk_pat1"]) ,"wk_pat1"]<-"유형없음"
+cs_all[is.na(cs_all[,"wk_pat2"]) ,"wk_pat2"]<-"유형없음"
+cs_all[is.na(cs_all[,"wk_pat3"]) ,"wk_pat3"]<-"유형없음"
+cs_all[is.na(cs_all[,"day_pat1"]) ,"day_pat1"]<-"유형없음"
+cs_all[is.na(cs_all[,"day_pat2"]) ,"day_pat2"]<-"유형없음"
+cs_all[is.na(cs_all[,"day_pat3"]) ,"day_pat3"]<-"유형없음"
+cs_all[is.na(cs_all[,"month_pat1"]) ,"month_pat1"]<-"유형없음"
+cs_all[is.na(cs_all[,"month_pat2"]) ,"month_pat2"]<-"유형없음"
+cs_all[is.na(cs_all[,"month_pat3"]) ,"month_pat3"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat1"]) ,"time_pat1"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat2"]) ,"time_pat2"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat3"]) ,"time_pat3"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat_wk"]) ,"time_pat_wk"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat2_wk"]) ,"time_pat2_wk"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat3_wk"]) ,"time_pat3_wk"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat_we"]) ,"time_pat_we"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat2_we"]) ,"time_pat2_we"]<-"유형없음"
+cs_all[is.na(cs_all[,"time_pat3_we"]) ,"time_pat3_we"]<-"유형없음"
+
+for(i in 1:631) cs_all[is.na(cs_all[,i]),i]<-0
 
 write.csv(cs_all,"cs_merge.csv",row.names=FALSE)
 
@@ -89,7 +109,7 @@ importance
 
 
 ###### Xgboost
-# 1. training/test matrix ����
+# 1. training/test matrix ��??
 
 cs_all_2 <- cs_all %>%
   select(-CUS_ID, -GENDER, -AGE, -GROUP)
