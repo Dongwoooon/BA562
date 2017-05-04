@@ -82,7 +82,7 @@ p_age <- function(x, t) {
 }
 
 pred_age<-as.data.frame(t(sapply(unique(tr.dt[,CUS_ID]), p_age, 5)))
-colnames(pred_age)<-(c("CUS_ID","d_40","d_20","d_30"))
+colnames(pred_age)<-(c("CUS_ID","d_40","d_30","d_20"))
 pred_age$d_20 <- abs(pred_age$d_20)   #distance - 제거 
 pred_age$d_30 <- abs(pred_age$d_30)
 pred_age$d_40 <- abs(pred_age$d_40)
@@ -105,19 +105,17 @@ get_prob <- function(x,i){
   }
 }
 cs_pred$prob <- mapply(get_prob,cs_pred$AGE_GROUP,1:nrow(cs_pred)) #참값에 해당하는 예측값
-w2v_age_train <- cs_pred
-w2v_age_train_all <- w2v_age_train
+w2v_age_train_all <- cs_pred
 names(w2v_age_train_all)[6] <- 'prob_4'
 save(w2v_age_train_all,file="w2v_age_train_all.Rdata")
 
-w2v_age_train <- select(w2v_age_train,c(CUS_ID,prob))
-names(w2v_age_train)[2] <- 'prob_4'
+w2v_age_train <- select(w2v_age_train_all,c(CUS_ID,prob_4))
 save(w2v_age_train,file="w2v_age_train.Rdata")
 
-prb <- w2v_age_train$prob_4
+prb <- w2v_age_train_all$prob_4
 prb <- prb[is.na(prb)==F]
-summary(prb)
-hist(prb)
+prb1 <- summary(prb)
+hist1<- hist(prb)
 
 ##### Predict age (test data)
 tr.dt <- data.table(tr.test, key="CUS_ID")
@@ -135,5 +133,3 @@ cs_test <- read.csv("test_cs_merge.csv",stringsAsFactors=F) %>%
   select(CUS_ID)
 w2v_age_test <- merge(cs_test,w2v_age_test,by="CUS_ID",all.x=T, all.y=F)
 save(w2v_age_test,file="w2v_age_test.Rdata")
-
-h <- w2v_age_train_all[is.na(w2v_age_train_all$prob_4)==F,-1]
