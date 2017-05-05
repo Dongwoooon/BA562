@@ -27,7 +27,7 @@ cs_all <- read.csv("cs_merge.csv",stringsAsFactors = TRUE)
 
 
 cs_all <- cs_all %>%
-  filter(CUS_ID!=1201 | CUS_ID!=1270 |CUS_ID!=2276 |CUS_ID!=2426) %>%      # °üÃøÄ¡ ÀÌ»ó ¾ÆÀÌµğµé (timeÀÌ ¾øÀ½)
+  filter(CUS_ID!=1201 | CUS_ID!=1270 |CUS_ID!=2276 |CUS_ID!=2426) %>%      # ê´€ì¸¡ì¹˜ ì´ìƒ ì•„ì´ë””ë“¤ (timeì´ ì—†ìŒ)
   select(-wk_ratio1, -we_ratio1, -wk_ratio2, -we_ratio2, -wk_ratio3, -we_ratio3,
          -mon_time:-day_pat3, -jan_ratio:-dec_ratio,-jan_ratio2:-dec_ratio2, -jan_ratio3:-dec_ratio3,
          -cons_num0_ratio:-cons_num22_ratio,-cons_time0_ratio:-cons_time22_ratio,-cons_cnt0_ratio:-cons_cnt22_ratio,
@@ -55,7 +55,7 @@ fitControl <- trainControl(## 10-fold CV
 
 set.seed(1)
 
-#### Caret Random Forest /// GROUPÀ¸·Î »ìÆìº¸´Â °ÍÀÌ ´õ Á¤È®µµ ³ôÀ½ 
+#### Caret Random Forest /// GROUPìœ¼ë¡œ ì‚´í´ë³´ëŠ” ê²ƒì´ ë” ì •í™•ë„ ë†’ìŒ 
 model_rf_gender <- caret::train(GENDER ~ .-CUS_ID -GROUP -AGE -AGE_GROUP,
                          data = cs_all, 
                          method = "rf",
@@ -78,7 +78,7 @@ model_rf_group <- caret::train(GROUP ~ .-CUS_ID -GENDER -AGE -AGE_GROUP,
 model_rf_group
 
 
-#### Caret xgboost /// AGE_GROUP, GENDER µû·ÎÇØ¼­ °öÇÏ´Â °ÍÀÌ ´õ ³ô°Ô ³ª
+#### Caret xgboost /// AGE_GROUP, GENDER ë”°ë¡œí•´ì„œ ê³±í•˜ëŠ” ê²ƒì´ ë” ë†’ê²Œ ë‚˜
 model_xgb_gender <- caret::train(GENDER ~ .-CUS_ID -GROUP -AGE -AGE_GROUP,
                           data = cs_all, 
                           method = "xgbTree",
@@ -123,33 +123,33 @@ write.csv(im_xgb_agegroup,"2.csv")
 write.csv(im_xgb_gender,"3.csv")
 
 
-#xgb_agegroup »óÀ§ º¯¼ö 45°³
-"½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î,p_v_.5,cons_cnt9_wk,wk_z,È½¼ö_Á¤º¸Åë½Å.IT,we_day,dec_time,v_t_median,may_cnt,
-p_v_.12,time13_z3_we,apr_time,È½¼öºñÀ²_°Ç°­.ÀÇÇĞ,½Ã°£ºñÀ²_Á¤º¸Åë½Å.IT,È½¼öºñÀ²_Á¤Ä¡.ÇàÁ¤,½Ã°£ºñÀ²_Ä¿¹Â´ÏÆ¼,cons_cnt8_wk,apr_z3,dec_z2,
-jun_cnt,time8_z,may_time,dec_z3,p_v_.21,È½¼ö_Á¦Á¶,v_t_max,cons_num9_we,cons_num9,dec_cnt,
-½Ã°£ºñÀ²_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,mean_time,n_v_.21,cons_time5_wk,cons_num9_wk,dec_z,jan_z3,È½¼ö_¿©Çà,time12_z2,day_coef_visit,
+#xgb_agegroup ìƒìœ„ ë³€ìˆ˜ 45ê°œ
+"ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´,p_v_.5,cons_cnt9_wk,wk_z,íšŸìˆ˜_ì •ë³´í†µì‹ .IT,we_day,dec_time,v_t_median,may_cnt,
+p_v_.12,time13_z3_we,apr_time,íšŸìˆ˜ë¹„ìœ¨_ê±´ê°•.ì˜í•™,ì‹œê°„ë¹„ìœ¨_ì •ë³´í†µì‹ .IT,íšŸìˆ˜ë¹„ìœ¨_ì •ì¹˜.í–‰ì •,ì‹œê°„ë¹„ìœ¨_ì»¤ë®¤ë‹ˆí‹°,cons_cnt8_wk,apr_z3,dec_z2,
+jun_cnt,time8_z,may_time,dec_z3,p_v_.21,íšŸìˆ˜_ì œì¡°,v_t_max,cons_num9_we,cons_num9,dec_cnt,
+ì‹œê°„ë¹„ìœ¨_ì¸í„°ë„·.ì»´í“¨í„°,mean_time,n_v_.21,cons_time5_wk,cons_num9_wk,dec_z,jan_z3,íšŸìˆ˜_ì—¬í–‰,time12_z2,day_coef_visit,
 time9_z2,cons_cnt8,jun_z3,n_v_.17,n_v_.5"
 
 
-#xgb_gender »óÀ§ º¯¼ö 45°³
-"n_v_.11,s_prt_mean,p_v_.5,È½¼ö_¼îÇÎ,È½¼öºñÀ²_Á¤Ä¡.ÇàÁ¤,p_v_.21,½Ã°£ºñÀ²_¿©Çà,v_t_max,oct_day,È½¼ö_°ÔÀÓ,
-È½¼ö_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,s_prt_max,n_v_.5,time12_z3_we,interval,½Ã°£ºñÀ²_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,¼Ò¸ğ½Ã°£_±³À°.ÇĞ¿ø,¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î,n_v_.9,
-p_v_.8,È½¼ö_´º½º.¹Ìµğ¾î,s_pr_max,s_pr_median,mean_cnt,½Ã°£ºñÀ²_°ÔÀÓ,jun_z2,oct_z,p_v_.12,¼Ò¸ğ½Ã°£_ÇĞ¹®,
-cons_time12_we,sum_cnt,time18_z2_we,½Ã°£ºñÀ²_±³À°.ÇĞ¿ø,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,È½¼öºñÀ²_¼îÇÎ,
+#xgb_gender ìƒìœ„ ë³€ìˆ˜ 45ê°œ
+"n_v_.11,s_prt_mean,p_v_.5,íšŸìˆ˜_ì‡¼í•‘,íšŸìˆ˜ë¹„ìœ¨_ì •ì¹˜.í–‰ì •,p_v_.21,ì‹œê°„ë¹„ìœ¨_ì—¬í–‰,v_t_max,oct_day,íšŸìˆ˜_ê²Œì„,
+íšŸìˆ˜_ì¸í„°ë„·.ì»´í“¨í„°,ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,s_prt_max,n_v_.5,time12_z3_we,interval,ì‹œê°„ë¹„ìœ¨_ì¸í„°ë„·.ì»´í“¨í„°,ì†Œëª¨ì‹œê°„_êµìœ¡.í•™ì›,ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´,n_v_.9,
+p_v_.8,íšŸìˆ˜_ë‰´ìŠ¤.ë¯¸ë””ì–´,s_pr_max,s_pr_median,mean_cnt,ì‹œê°„ë¹„ìœ¨_ê²Œì„,jun_z2,oct_z,p_v_.12,ì†Œëª¨ì‹œê°„_í•™ë¬¸,
+cons_time12_we,sum_cnt,time18_z2_we,ì‹œê°„ë¹„ìœ¨_êµìœ¡.í•™ì›,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,íšŸìˆ˜ë¹„ìœ¨_ì‡¼í•‘,
 p_v_.18,p_v_.1,cons_num12_we,cons_cnt22_wk,n_v_.8"
 
 
-#### º¯¼ö °³¼ö ¹Ù²ã°¡¸é¼­ °¡Àå ÀûÇÕÇÑ º¯¼ö ¼±Á¤ÇÏ±â
+#### ë³€ìˆ˜ ê°œìˆ˜ ë°”ê¿”ê°€ë©´ì„œ ê°€ì¥ ì í•©í•œ ë³€ìˆ˜ ì„ ì •í•˜ê¸°
 #rf_group
 set.seed(1)
 cs_all.rf_group <- cs_all %>%
   select(CUS_ID, GENDER, AGE, AGE_GROUP, GROUP,
-         cons_num18,½Ã°£ºñÀ²_ÇĞ¹®,p_v_.5,day_coef_visit,sum_time,È½¼ö_¼îÇÎ,cons_num12_we,p_v_.21,¼Ò¸ğ½Ã°£_Ä¿¹Â´ÏÆ¼,p_v_.12,
-         È½¼ö_¼­ºñ½º,È½¼ö_´º½º.¹Ìµğ¾î,jan_time,jan_z3,we_cnt,nov_z2,¼Ò¸ğ½Ã°£_°Ç°­.ÀÇÇĞ,¼Ò¸ğ½Ã°£_ÇĞ¹®,È½¼ö_Á¤Ä¡.ÇàÁ¤,È½¼ö_°Ç°­.ÀÇÇĞ,
-         cons_time13_we,time8_z3,½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,p_v_.11,wk_z2,p_v_.1,aug_time,apr_time,p_v_.8,È½¼öºñÀ²_¿£ÅÍÅ×ÀÎ¸ÕÆ®,
-         ¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î, time9_z3_we,time9_z2,½Ã°£ºñÀ²_»çÈ¸.¹®È­.Á¾±³,v_t_max)
+         cons_num18,ì‹œê°„ë¹„ìœ¨_í•™ë¬¸,p_v_.5,day_coef_visit,sum_time,íšŸìˆ˜_ì‡¼í•‘,cons_num12_we,p_v_.21,ì†Œëª¨ì‹œê°„_ì»¤ë®¤ë‹ˆí‹°,p_v_.12,
+         íšŸìˆ˜_ì„œë¹„ìŠ¤,íšŸìˆ˜_ë‰´ìŠ¤.ë¯¸ë””ì–´,jan_time,jan_z3,we_cnt,nov_z2,ì†Œëª¨ì‹œê°„_ê±´ê°•.ì˜í•™,ì†Œëª¨ì‹œê°„_í•™ë¬¸,íšŸìˆ˜_ì •ì¹˜.í–‰ì •,íšŸìˆ˜_ê±´ê°•.ì˜í•™,
+         cons_time13_we,time8_z3,ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,p_v_.11,wk_z2,p_v_.1,aug_time,apr_time,p_v_.8,íšŸìˆ˜ë¹„ìœ¨_ì—”í„°í…Œì¸ë¨¼íŠ¸,
+         ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´, time9_z3_we,time9_z2,ì‹œê°„ë¹„ìœ¨_ì‚¬íšŒ.ë¬¸í™”.ì¢…êµ,v_t_max)
 
-# final: »óÀ§ º¯¼ö 35°³
+# final: ìƒìœ„ ë³€ìˆ˜ 35ê°œ
 model_rf_group <- caret::train(GROUP ~ .-CUS_ID -GENDER -AGE -AGE_GROUP,
                                data = cs_all.rf_group, 
                                method = "rf",
@@ -162,20 +162,20 @@ model_rf_group
 set.seed(1)
 cs_all.xgb_gender <- cs_all %>%
   select(CUS_ID, GENDER, AGE, AGE_GROUP, GROUP,
-         n_v_.11,p_v_.5,È½¼ö_¼îÇÎ,È½¼öºñÀ²_Á¤Ä¡.ÇàÁ¤,p_v_.21,½Ã°£ºñÀ²_¿©Çà,v_t_max,oct_day,È½¼ö_°ÔÀÓ,
-         È½¼ö_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,n_v_.5,time12_z3_we,interval,½Ã°£ºñÀ²_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,¼Ò¸ğ½Ã°£_±³À°.ÇĞ¿ø,¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î,n_v_.9,
-         p_v_.8,È½¼ö_´º½º.¹Ìµğ¾î,mean_cnt,½Ã°£ºñÀ²_°ÔÀÓ,jun_z2,oct_z,p_v_.12,¼Ò¸ğ½Ã°£_ÇĞ¹®,
-         cons_time12_we,sum_cnt,time18_z2_we,½Ã°£ºñÀ²_±³À°.ÇĞ¿ø,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,È½¼öºñÀ²_¼îÇÎ,
-         p_v_.18,p_v_.1,cons_num12_we,cons_cnt22_wk,n_v_.8,dec_z3,cons_time0,È½¼ö_¹®ÇĞ.¿¹¼ú,½Ã°£ºñÀ²_Á¤º¸Åë½Å.IT)
+         n_v_.11,p_v_.5,íšŸìˆ˜_ì‡¼í•‘,íšŸìˆ˜ë¹„ìœ¨_ì •ì¹˜.í–‰ì •,p_v_.21,ì‹œê°„ë¹„ìœ¨_ì—¬í–‰,v_t_max,oct_day,íšŸìˆ˜_ê²Œì„,
+         íšŸìˆ˜_ì¸í„°ë„·.ì»´í“¨í„°,ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,n_v_.5,time12_z3_we,interval,ì‹œê°„ë¹„ìœ¨_ì¸í„°ë„·.ì»´í“¨í„°,ì†Œëª¨ì‹œê°„_êµìœ¡.í•™ì›,ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´,n_v_.9,
+         p_v_.8,íšŸìˆ˜_ë‰´ìŠ¤.ë¯¸ë””ì–´,mean_cnt,ì‹œê°„ë¹„ìœ¨_ê²Œì„,jun_z2,oct_z,p_v_.12,ì†Œëª¨ì‹œê°„_í•™ë¬¸,
+         cons_time12_we,sum_cnt,time18_z2_we,ì‹œê°„ë¹„ìœ¨_êµìœ¡.í•™ì›,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,íšŸìˆ˜ë¹„ìœ¨_ì‡¼í•‘,
+         p_v_.18,p_v_.1,cons_num12_we,cons_cnt22_wk,n_v_.8,dec_z3,cons_time0,íšŸìˆ˜_ë¬¸í•™.ì˜ˆìˆ ,ì‹œê°„ë¹„ìœ¨_ì •ë³´í†µì‹ .IT)
 
-# n_v_.11,s_prt_mean,p_v_.5,È½¼ö_¼îÇÎ,È½¼öºñÀ²_Á¤Ä¡.ÇàÁ¤,p_v_.21,½Ã°£ºñÀ²_¿©Çà,v_t_max,oct_day,È½¼ö_°ÔÀÓ,
-# È½¼ö_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,s_prt_max,n_v_.5,time12_z3_we,interval,½Ã°£ºñÀ²_ÀÎÅÍ³İ.ÄÄÇ»ÅÍ,¼Ò¸ğ½Ã°£_±³À°.ÇĞ¿ø,¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î,n_v_.9,
-# p_v_.8,È½¼ö_´º½º.¹Ìµğ¾î,s_pr_max,s_pr_median,mean_cnt,½Ã°£ºñÀ²_°ÔÀÓ,jun_z2,oct_z,p_v_.12,¼Ò¸ğ½Ã°£_ÇĞ¹®,
-# cons_time12_we,sum_cnt,time18_z2_we,½Ã°£ºñÀ²_±³À°.ÇĞ¿ø,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,È½¼öºñÀ²_¼îÇÎ,
+# n_v_.11,s_prt_mean,p_v_.5,íšŸìˆ˜_ì‡¼í•‘,íšŸìˆ˜ë¹„ìœ¨_ì •ì¹˜.í–‰ì •,p_v_.21,ì‹œê°„ë¹„ìœ¨_ì—¬í–‰,v_t_max,oct_day,íšŸìˆ˜_ê²Œì„,
+# íšŸìˆ˜_ì¸í„°ë„·.ì»´í“¨í„°,ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,s_prt_max,n_v_.5,time12_z3_we,interval,ì‹œê°„ë¹„ìœ¨_ì¸í„°ë„·.ì»´í“¨í„°,ì†Œëª¨ì‹œê°„_êµìœ¡.í•™ì›,ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´,n_v_.9,
+# p_v_.8,íšŸìˆ˜_ë‰´ìŠ¤.ë¯¸ë””ì–´,s_pr_max,s_pr_median,mean_cnt,ì‹œê°„ë¹„ìœ¨_ê²Œì„,jun_z2,oct_z,p_v_.12,ì†Œëª¨ì‹œê°„_í•™ë¬¸,
+# cons_time12_we,sum_cnt,time18_z2_we,ì‹œê°„ë¹„ìœ¨_êµìœ¡.í•™ì›,cons_time5,cons_cnt8_we,cons_time18_wk,aug_time,mar_z,íšŸìˆ˜ë¹„ìœ¨_ì‡¼í•‘,
 # p_v_.18,p_v_.1,cons_num12_we,cons_cnt22_wk,n_v_.8
 
 
-# final: »óÀ§ º¯¼ö 45°³
+# final: ìƒìœ„ ë³€ìˆ˜ 45ê°œ
 model_xgb_gender <- caret::train(GENDER ~ .-CUS_ID -GROUP -AGE -AGE_GROUP,
                                  data = cs_all.xgb_gender, 
                                  method = "xgbTree",
@@ -190,11 +190,11 @@ max(model_xgb_gender[[4]][8])
 set.seed(1)
 cs_all.xgb_agegroup <- cs_all %>%
   select(CUS_ID, GENDER, AGE, AGE_GROUP, GROUP,
-         ½Ã°£ºñÀ²_´º½º.¹Ìµğ¾î,¼Ò¸ğ½Ã°£_´º½º.¹Ìµğ¾î,p_v_.5,cons_cnt9_wk,wk_z,È½¼ö_Á¤º¸Åë½Å.IT,we_day,dec_time,v_t_median,may_cnt,
-         p_v_.12,time13_z3_we,apr_time,È½¼öºñÀ²_°Ç°­.ÀÇÇĞ,½Ã°£ºñÀ²_Á¤º¸Åë½Å.IT,È½¼öºñÀ²_Á¤Ä¡.ÇàÁ¤,½Ã°£ºñÀ²_Ä¿¹Â´ÏÆ¼,cons_cnt8_wk,apr_z3,dec_z2,
+         ì‹œê°„ë¹„ìœ¨_ë‰´ìŠ¤.ë¯¸ë””ì–´,ì†Œëª¨ì‹œê°„_ë‰´ìŠ¤.ë¯¸ë””ì–´,p_v_.5,cons_cnt9_wk,wk_z,íšŸìˆ˜_ì •ë³´í†µì‹ .IT,we_day,dec_time,v_t_median,may_cnt,
+         p_v_.12,time13_z3_we,apr_time,íšŸìˆ˜ë¹„ìœ¨_ê±´ê°•.ì˜í•™,ì‹œê°„ë¹„ìœ¨_ì •ë³´í†µì‹ .IT,íšŸìˆ˜ë¹„ìœ¨_ì •ì¹˜.í–‰ì •,ì‹œê°„ë¹„ìœ¨_ì»¤ë®¤ë‹ˆí‹°,cons_cnt8_wk,apr_z3,dec_z2,
          jun_cnt,time8_z,may_time,dec_z3,p_v_.21)
 
-# final: »óÀ§ º¯¼ö 25°³
+# final: ìƒìœ„ ë³€ìˆ˜ 25ê°œ
 model_xgb_agegroup <- caret::train(AGE_GROUP ~ .-CUS_ID -GROUP -AGE -GENDER,
                                    data = cs_all.xgb_agegroup, 
                                    method = "xgbTree",
@@ -208,7 +208,7 @@ max(model_xgb_agegroup[[4]][8])
 
 
 ###### Xgboost
-# 1. training/test matrix Á¦ÀÛ
+# 1. training/test matrix ì œì‘
 
 cs_all_2 <- cs_all %>%
   select(-CUS_ID, -GENDER, -AGE, -GROUP)
