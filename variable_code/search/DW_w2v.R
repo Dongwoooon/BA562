@@ -14,7 +14,7 @@ tr.test$CUS_ID <- as.numeric(as.character(tr.test$CUS_ID))
 
 #### Convert data.frame to data.table for fast computing
 #### cs data
-cs <- read.csv("cs_merge.csv",stringsAsFactors=F) %>%
+cs <- read.csv("cs_merge_train_cut.csv",stringsAsFactors=F) %>%
   select(CUS_ID, GENDER, AGE, GROUP)
 cs <- cs %>% mutate(AGE_GROUP = substr(GROUP,2,3)) %>% select(-AGE)
 
@@ -24,6 +24,7 @@ md.dt <- merge(cs.dt, tr.dt)
 
 md.dt$QRY <- as.character(md.dt$QRY)
 md.dt$GROUP <- as.character(md.dt$GROUP)
+md.dt <- select(md.dt, -Freq)
 ######### search keyword를 잘 grouping 해주어서 분석해야함. 노가다로 
 # Make sites sentences
 fgen <- function(x) {
@@ -54,15 +55,15 @@ write.table(items_age, "items_age.txt", eol = " ", quote = F, row.names = F, col
 write.table(items_grp, "items_grp.txt", eol = " ", quote = F, row.names = F, col.names = F)
 
 # Train site2vec model
-model_gen = train_word2vec("items_gen.txt","vec_gen.bin",vectors=100,threads=4,window=10,iter=5,negative_samples=0, force = T)
-model_age = train_word2vec("items_age.txt","vec_age.bin",vectors=100,threads=4,window=10,iter=5,negative_samples=0, force = T)
+model_gen = train_word2vec("items_gen.txt","vec_gen.bin",vectors=300,threads=3,window=5,cbow=1,negative_samples=10,iter=5,force = T)
+model_age = train_word2vec("items_age.txt","vec_age.bin",vectors=300,threads=4,window=5,cbow=1,negative_samples=10,iter=5,force = T)
 model_grp = train_word2vec("items_grp.txt","vec_grp.bin",vectors=100,threads=4,window=10,iter=5,negative_samples=0, force = T)
 ######차원 수     / 내 컴퓨터의 core수 / window는 전 후 몇개 할지 / negative sample은 default로 하기 (5임), 데이터 적을 경우 5 이상으로 돌려야함)
 
 # Explore the model
-for (v in unique(md.dt[,GENDER])) print(closest_to(model_gen, v, n=11))  #######남자에 가까운 벡터, 여자에 가까운 벡터 나옴 10개씩 
-for (v in unique(md.dt[,AGE_GROUP])) print(closest_to(model_age, v, n=11))
-for (v in unique(md.dt[,GROUP])) print(closest_to(model_grp, v, n=11))
+for (v in unique(cs.dt[,GENDER])) print(closest_to(model_gen, v, n=31))  #######남자에 가까운 벡터, 여자에 가까운 벡터 나옴 10개씩 
+for (v in unique(cs.dt[,AGE_GROUP])) print(closest_to(model_age, v, n=31))
+for (v in unique(cs.dt[,GROUP])) print(closest_to(model_grp, v, n=11))
 
 model_gen[[unique(md.dt[,GENDER]), average=F]] %>% plot(method="pca")     ####남자, 여자 위치를 그래프에 표시 
 model_age[[unique(md.dt[,AGE_GROUP]), average=F]] %>% plot(method="pca") 
