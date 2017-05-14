@@ -36,6 +36,7 @@ cs_all <- cs_all %>%
          -we_z,-we_z2,-we_z3)
 
 
+
   
 #### Model
 ## factor
