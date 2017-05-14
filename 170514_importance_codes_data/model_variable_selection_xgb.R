@@ -99,10 +99,10 @@ write.csv(im_xgb_cls_group50,"im_xgb_cls_group50.csv")
 
 ## Caret xgboost 45
 cs_merge_train_45<-cs_merge_train_50%>%
-  select(-cat_coef_visit,-p_v_.17,-apr_z2,-mean_time,-cons_num5)
+  select(-CUS_ID,-GENDER,-AGE,-cat_coef_visit,-p_v_.17,-apr_z2,-mean_time,-cons_num5)
 
-
-model_xgb_cls_group45 <- caret::train(GROUP ~ .-CUS_ID -GENDER -AGE,
+set.seed(1)
+model_xgb_cls_group45 <- caret::train(GROUP ~ .,
                                       data = cs_merge_train_45, 
                                       preProcess = NULL,
                                       metric = "logLoss",
